@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hellok8s-deployment
+spec:
+
+  # 设置滚动更新策略
+  strategy:
+     rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+  # replicas 表示的是部署的 pod 副本数量
+  replicas: 3
+
+  # selector 里面表示的是 deployment 资源和 pod 资源关联的方式，这里表示 deployment 会管理 (selector) 所有 labels=hellok8s 的 pod。
+  selector:
+    matchLabels:
+      app: hellok8s
+
+  # template 的内容是用来定义 pod 资源的
+  template:
+    metadata:
+      labels:
+        app: hellok8s
+    spec:
+      containers:
+        - image: hhhh2333/hellok8s:v3
+          name: hellok8s-container
+
+          # 存活探针
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            # 第一次探测在 3 秒之后
+            initialDelaySeconds: 3
+            # 每隔 3 秒探测一次
+            periodSeconds: 3
+
+          # 就绪探针
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 1
+            successThreshold: 5
